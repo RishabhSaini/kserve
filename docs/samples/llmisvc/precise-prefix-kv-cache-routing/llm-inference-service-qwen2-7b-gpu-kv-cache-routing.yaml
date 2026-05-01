@@ -13,7 +13,7 @@ spec:
     scheduler:
       config:
         inline:
-          apiVersion: inference.networking.x-k8s.io/v1alpha1
+          apiVersion: inference.networking.x-k8s.io/v1alpha2
           kind: EndpointPickerConfig
           plugins:
             - type: single-profile-handler
@@ -31,6 +31,9 @@ spec:
             - type: queue-scorer
             - type: kv-cache-utilization-scorer
             - type: max-score-picker
+            - type: slo-deadline-ordering-policy
+            - type: round-robin-fairness-policy
+
           schedulingProfiles:
             - name: default
               plugins:
@@ -41,6 +44,27 @@ spec:
                 - pluginRef: prefix-cache-scorer
                   weight: 3
                 - pluginRef: max-score-picker
+
+          saturationDetector:
+            queueDepthThreshold: 1
+            kvCacheUtilThreshold: 0.05
+
+          featureGates:
+          - flowControl
+          
+          flowControl:
+            maxBytes: "1Gi"
+            defaultRequestTTL: 1m
+            priorityBands:
+            - priority: 10
+              orderingPolicyRef: slo-deadline-ordering-policy
+              fairnessPolicyRef: round-robin-fairness-policy
+            - priority: 5
+              orderingPolicyRef: slo-deadline-ordering-policy
+              fairnessPolicyRef: round-robin-fairness-policy
+            - priority: 1
+              orderingPolicyRef: slo-deadline-ordering-policy
+              fairnessPolicyRef: round-robin-fairness-policy
     route: { }
     gateway: { }
   template:
