@@ -59,3 +59,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "tracing: mark test as a distributed tracing test"
     )
+    config.addinivalue_line(
+        "markers", "flow_control: mark test as a flow control test"
+    )
